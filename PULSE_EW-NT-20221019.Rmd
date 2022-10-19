@@ -1,0 +1,25 @@
+---
+title: "PULSE_EW-NT-20221019"
+author: "Nate Thomas"
+date: "2022-10-19"
+output: html_document
+---
+
+NIOSH WSH (PAR-20-312) Project - Household PULSE Data Analysis
+Data: HPS data phase 3.1-3.5 (week 28-48)
+Task#1: Essential work settings - counts 06/20/2022 ~
+Task#2: Shot by EW 8/22/2022 ~
+
+Table of Contents
+1. Read data folders
+2. Clean and prepare data
+
+# Read Data
+
+```{r}
+for (i in 1:(length(list.dirs('./Data'))-1)){
+  dir = list.dirs('./Data')[i+1]
+  print(dir)
+}
+```
+
