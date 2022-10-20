@@ -18,6 +18,7 @@ Table of Contents
 1. Read data folders
 2. Clean and prepare data
 2.1 Merge data and wieghts
+2.2 Clean data and create new variables - independent variables
 
 # 1. Read Data
 
@@ -55,14 +56,14 @@ df <- raw_data %>%
 ## 2.1 Merge data and wieghts
 
 ```{r}
-df <- df %>%
+df_joined <- df %>%
   inner_join(raw_weights, by = c('SCRAM','WEEK'))
 ```
 
 ## 2.2 Keep only variables needed
 
 ```{r}
-df <- df %>%
+df_selected <- df_joined %>%
   mutate(`PWEIGHT1-PWEIGHT80` = PWEIGHT1-PWEIGHT80) %>%
   select(## UNIQUE ID ##
          SCRAM,
@@ -93,4 +94,113 @@ df <- df %>%
          PWEIGHT,
          HWEIGHT,
          `PWEIGHT1-PWEIGHT80`)
+```
+
+# 2.2 Clean data and create new variables - independent variables
+
+```{r}
+
+df_ind <- df_selected %>%
+  mutate(
+         #Age groups
+         agegroup1 = 
+                     as.character(
+                     #For 2021 (Wk28-40) data
+                     ifelse(28<=WEEK & WEEK<=40,
+                       ifelse(2001<=TBIRTH_YEAR & TBIRTH_YEAR<=2003,1, #ages 18 to 20
+                       ifelse(1972<=TBIRTH_YEAR & TBIRTH_YEAR<=2000,2, #ages 21 to 49
+                       ifelse(                    TBIRTH_YEAR<=1971,3, #ages 50+
+                     NA))),
+                     #For 2022 (Wk41+) data
+                       ifelse(2002<=TBIRTH_YEAR & TBIRTH_YEAR<=2004,1, #ages 18 to 20
+                       ifelse(1973<=TBIRTH_YEAR & TBIRTH_YEAR<=2001,2, #ages 21 to 49
+                       ifelse(                    TBIRTH_YEAR<=1972,3, #ages 50+
+                     NA))))),
+         agegroup_label = 
+                     #For 2021 (Wk28-40) data
+                     ifelse(28<=WEEK & WEEK<=40,
+                       ifelse(2001<=TBIRTH_YEAR & TBIRTH_YEAR<=2003,'ages 18 to 20', #ages 18 to 20
+                       ifelse(1972<=TBIRTH_YEAR & TBIRTH_YEAR<=2000,'ages 21 to 49', #ages 21 to 49
+                       ifelse(                    TBIRTH_YEAR<=1971,'ages 50+', #ages 50+
+                     NA))),
+                     #For 2022 (Wk41+) data
+                       ifelse(2002<=TBIRTH_YEAR & TBIRTH_YEAR<=2004,'ages 18 to 20', #ages 18 to 20
+                       ifelse(1973<=TBIRTH_YEAR & TBIRTH_YEAR<=2001,'ages 21 to 49', #ages 21 to 49
+                       ifelse(                    TBIRTH_YEAR<=1972,'ages 50+', #ages 50+
+                     NA)))),
+         
+         #Gender
+         female = 
+                     as.character(
+                     #For phase 3.1 (week 28-33) data
+                     ifelse(28<=WEEK & WEEK<=33,
+                       ifelse(EGENDER == 2,1,0
+                      ),
+                     #For phase 3.2-3.4 (week >=34) data
+                       ifelse(EGENID_BIRTH  == 2,1,0)
+                      )),
+         #Hisp and Race
+         hisprace = 
+                     as.character(
+                     ifelse(RHISPANIC == 2              ,1, #Hispanic
+                     ifelse(RHISPANIC == 1 & RRACE == 1 ,2, #White, alone
+                     ifelse(RHISPANIC == 1 & RRACE == 2 ,3, #Black, alone
+                     ifelse(RHISPANIC == 1 & RRACE == 3 ,4, #Asian
+                     ifelse(RHISPANIC == 1 & RRACE == 4 ,5, #Any other race alone, or in combination
+                     NA)))))),
+         hisp = 
+                     as.character(
+                     ifelse(RHISPANIC ==2                ,1,0)
+                     ),
+         black = 
+                     as.character(
+                     ifelse(RHISPANIC == 1 & RRACE == 2 ,1,0)
+                     ),
+         asian = 
+                     as.character(
+                     ifelse(RHISPANIC == 1 & RRACE == 3 ,1,0)
+                     ),
+         other = 
+                     as.character(
+                     ifelse(RHISPANIC == 1 & RRACE == 3 ,1,0)
+                     ),
+         #Education
+         educ =
+                     as.character(
+                     ifelse(EEDUC %in% c(1,2) ,1, #Less than high school
+                     ifelse(EEDUC == 1       ,2, #High school
+                     ifelse(EEDUC %in% c(4,5) ,3, #Some college
+                     ifelse(EEDUC %in% c(6,7) ,4, #College
+                     NA))))),
+         lesshs = 
+                     as.character(
+                     ifelse(EEDUC %in% c(1,2) ,1,0)
+                     ),
+         hs = 
+                     as.character(
+                     ifelse(EEDUC == 3 ,1,0)
+                     ),
+         somecol =
+                     as.character(
+                     ifelse(EEDUC %in% c(4,5) ,1,0)
+                     ),
+         bachplus =
+                     as.character(
+                     ifelse(EEDUC %in% c(6,7) ,1,0)
+                     ),
+         #Disability
+         disability = 
+                     as.character(
+                     ifelse(SEEING %in% c(3,4) | 
+                            HEARING %in% c(3,4) | 
+                            REMEMBERING %in% c(3,4) | 
+                            MOBILITY %in% c(3,4),1,0)
+                     )
+         )
+
+
+#df_ind %>% filter(is.na(agebroup1))
+#df_ind %>% filter(is.na(female))
+
+df_ind %>% write.csv('PULSE.csv')
 ```
