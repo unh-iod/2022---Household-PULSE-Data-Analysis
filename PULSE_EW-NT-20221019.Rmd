@@ -99,7 +99,6 @@ df_selected <- df_joined %>%
 # 2.2 Clean data and create new variables - independent variables
 
 ```{r}
-
 df_ind <- df_selected %>%
   mutate(
          #Age groups
@@ -148,6 +147,14 @@ df_ind <- df_selected %>%
                      ifelse(RHISPANIC == 1 & RRACE == 3 ,4, #Asian
                      ifelse(RHISPANIC == 1 & RRACE == 4 ,5, #Any other race alone, or in combination
                      NA)))))),
+         hisprace_label = 
+                     as.character(
+                     ifelse(RHISPANIC == 2              ,'Hispanic', #Hispanic
+                     ifelse(RHISPANIC == 1 & RRACE == 1 ,'White, alone', #White, alone
+                     ifelse(RHISPANIC == 1 & RRACE == 2 ,'Black, alone', #Black, alone
+                     ifelse(RHISPANIC == 1 & RRACE == 3 ,'Asian', #Asian
+                     ifelse(RHISPANIC == 1 & RRACE == 4 ,'Any other race alone, or in combination', #Any other race alone, or in combination
+                     NA)))))),
          hisp = 
                      as.character(
                      ifelse(RHISPANIC ==2                ,1,0)
@@ -168,9 +175,16 @@ df_ind <- df_selected %>%
          educ =
                      as.character(
                      ifelse(EEDUC %in% c(1,2) ,1, #Less than high school
-                     ifelse(EEDUC == 1       ,2, #High school
+                     ifelse(EEDUC == 1        ,2, #High school
                      ifelse(EEDUC %in% c(4,5) ,3, #Some college
                      ifelse(EEDUC %in% c(6,7) ,4, #College
+                     NA))))),
+         educ_label =
+                     as.character(
+                     ifelse(EEDUC %in% c(1,2) ,'Less than high school', #Less than high school
+                     ifelse(EEDUC == 1        ,'High school', #High school
+                     ifelse(EEDUC %in% c(4,5) ,'Some college', #Some college
+                     ifelse(EEDUC %in% c(6,7) ,'College', #College
                      NA))))),
          lesshs = 
                      as.character(
@@ -195,12 +209,32 @@ df_ind <- df_selected %>%
                             HEARING %in% c(3,4) | 
                             REMEMBERING %in% c(3,4) | 
                             MOBILITY %in% c(3,4),1,0)
-                     )
+                     ),
+         #Essential Workers
+         wrkstatus =
+                     as.character(
+                     ifelse(ANYWORK == 1                                      ,1, # working for pay
+                     ifelse(ANYWORK == 2 & WKVOL == 1                         ,2, # volunteering outside
+                     ifelse(ANYWORK == 2 & WKVOL != 1                         ,3, # Not working
+                     ifelse(ANYWORK %in% c(-99, -88) & WKVOL == 1             ,2, # volunteering outside
+                     ifelse(ANYWORK %in% c(-99, -88) & WKVOL == 2             ,3, # Not working
+                     ifelse(ANYWORK %in% c(-99, -88) & WKVOL %in% c(-99, -88) ,4, #Missing working info
+                     NA))))))),
+         wrkstatus_label =
+                     as.character(
+                     ifelse(ANYWORK == 1                                      ,'working for pay', # working for pay
+                     ifelse(ANYWORK == 2 & WKVOL == 1                         ,'volunteering outside', # volunteering outside
+                     ifelse(ANYWORK == 2 & WKVOL != 1                         ,'Not working', # Not working
+                     ifelse(ANYWORK %in% c(-99, -88) & WKVOL == 1             ,'volunteering outside', # volunteering outside
+                     ifelse(ANYWORK %in% c(-99, -88) & WKVOL == 2             ,'Not working', # Not working
+                     ifelse(ANYWORK %in% c(-99, -88) & WKVOL %in% c(-99, -88) ,'Missing working info', #Missing working info
+                     NA)))))))
          )
+
 
 
 #df_ind %>% filter(is.na(agebroup1))
 #df_ind %>% filter(is.na(female))
 
-df_ind %>% write.csv('PULSE.csv')
+#df_ind %>% write.csv('PULSE.csv')
 ```
