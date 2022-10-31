@@ -64,7 +64,6 @@ df_joined <- df %>%
 
 ```{r}
 df_selected <- df_joined %>%
-  mutate(`PWEIGHT1-PWEIGHT80` = PWEIGHT1-PWEIGHT80) %>%
   select(## UNIQUE ID ##
          SCRAM,
          ## RESPONSE WEEK ##
@@ -93,10 +92,10 @@ df_selected <- df_joined %>%
          ## WEIGHTS ##
          PWEIGHT,
          HWEIGHT,
-         `PWEIGHT1-PWEIGHT80`)
+         contains("PWEIGHT"))
 ```
 
-# 2.2 Clean data and create new variables - independent variables
+# 2.2 Clean data and create new variables - independent and dependent (shot)
 
 ```{r}
 df_ind <- df_selected %>%
@@ -228,13 +227,67 @@ df_ind <- df_selected %>%
                      ifelse(ANYWORK %in% c(-99, -88) & WKVOL == 1             ,'volunteering outside', # volunteering outside
                      ifelse(ANYWORK %in% c(-99, -88) & WKVOL == 2             ,'Not working', # Not working
                      ifelse(ANYWORK %in% c(-99, -88) & WKVOL %in% c(-99, -88) ,'Missing working info', #Missing working info
-                     NA)))))))
-         )
-
-
-
-#df_ind %>% filter(is.na(agebroup1))
-#df_ind %>% filter(is.na(female))
+                     NA))))))),
+         wrklctn = 
+                     as.character(
+                     ifelse(wrkstatus == 1 & WKVOL == 2                       ,1, # working at home
+                     ifelse(wrkstatus == 1 & WKVOL == 1                       ,2, # working outside
+                     ifelse(wrkstatus == 1 & WKVOL %in% c(-99, -88)           ,3, # missing working location info
+                     NA)))),
+         wrklctn_label = 
+                     as.character(
+                     ifelse(wrkstatus == 1 & WKVOL == 2                       ,'working at home', # working at home
+                     ifelse(wrkstatus == 1 & WKVOL == 1                       ,'working outside', # working outside
+                     ifelse(wrkstatus == 1 & WKVOL %in% c(-99, -88)           ,'missing working location info', # missing working location info
+                     NA)))),
+         ewrk = 
+                     as.character(
+                     ifelse(28 <= WEEK & WEEK <= 33,
+                       ifelse(WKVOL == 1 & SETTING %in% c(1,2,7)              ,1, # Health care
+                       ifelse(WKVOL == 1 & SETTING %in% c(3:5)                ,2, # Education
+                       ifelse(WKVOL == 1 & SETTING %in% c(6,8:15)             ,3, # Non-education
+                       ifelse(WKVOL == 1 & SETTING %in% c(16)                 ,4, # Not in essential work setting
+                       ifelse(WKVOL == 1 & SETTING %in% c(-99,-88)            ,5, # Missing work setting information
+                     NA))))),
+                       ifelse(WKVOL == 1 & SETTING %in% c(1,2,3,4,5,10)       ,1, # Health care
+                       ifelse(WKVOL == 1 & SETTING %in% c(6,7,8)              ,2, # Education
+                       ifelse(WKVOL == 1 & SETTING %in% c(9,11:18)            ,3, # Non-Education
+                       ifelse(WKVOL == 1 & SETTING %in% c(19)                 ,4, # Not in essential work setting
+                       ifelse(WKVOL == 1 & SETTING %in% c(-99,-88)            ,5, # Missing work setting information
+                      NA))))))),
+         ewrk_lbl = 
+                     as.character(
+                     ifelse(28 <= WEEK & WEEK <= 33,
+                       ifelse(WKVOL == 1 & SETTING %in% c(1,2,7)              ,"Health care", # Health care
+                       ifelse(WKVOL == 1 & SETTING %in% c(3:5)                ,"Education", # Education
+                       ifelse(WKVOL == 1 & SETTING %in% c(6,8:15)             ,"Non-education", # Non-education
+                       ifelse(WKVOL == 1 & SETTING %in% c(16)                 ,"Not in essential work setting", # Not in essential work setting
+                       ifelse(WKVOL == 1 & SETTING %in% c(-99,-88)            ,"Missing work setting information", # Missing work setting information
+                     NA))))),
+                       ifelse(WKVOL == 1 & SETTING %in% c(1,2,3,4,5,10)       ,"Health care", # Health care
+                       ifelse(WKVOL == 1 & SETTING %in% c(6,7,8)              ,"Education", # Education
+                       ifelse(WKVOL == 1 & SETTING %in% c(9,11:18)            ,"Non-Education", # Non-Education
+                       ifelse(WKVOL == 1 & SETTING %in% c(19)                 ,"Not in essential work setting", # Not in essential work setting
+                       ifelse(WKVOL == 1 & SETTING %in% c(-99,-88)            ,"Missing work setting information", # Missing work setting information
+                      NA))))))),
+         shot = 
+                    as.character(
+                    ifelse(RECVDVACC == 1 ,1, # received shot
+                    ifelse(RECVDVACC == 2 ,0, # did not receive shot
+                    NA)))                   
+                  )
 
 #df_ind %>% write.csv('PULSE.csv')
+```
+
+# 3 Calculate counts by essential work and settings;
+
+```{r}
+tbl1 <- df_ind %>%
+  filter(agegroup1 == 2) %>%
+  select(SCRAM, WEEK, wrkstatus_label, wrklctn_label, ewrk_lbl) %>%
+  group_by(WEEK, wrkstatus_label, wrklctn_label, ewrk_lbl) %>%
+  summarise(n = n()) 
+  
+tbl1
 ```

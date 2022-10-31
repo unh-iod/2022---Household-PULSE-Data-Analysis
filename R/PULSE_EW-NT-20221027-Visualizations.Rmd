@@ -1,0 +1,24 @@
+---
+title: "PULSE_EW-NT-20221027-Visualizations"
+output: html_document
+date: "2022-10-27"
+---
+
+```{r setup, include=FALSE, warning=FALSE, error=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+
+#Load data preprocessed in SAS
+populations_summary <- read_excel("../SAS/populations_summary.xlsx") %>%
+  select(-`_SkipLine`) %>%
+  filter(!(is.na(lbl_shot) | is.na(lbl_allewgrp_layer3_EW)))
+```
+
+# Sample Summary
+
+```{r}
+ggplot(populations_summary,aes(x=WEEK, y=WgtFreq)) + 
+    geom_line(aes(color = c(lbl_allewgrp_layer3_EW,lbl_shot)))
+```
+
