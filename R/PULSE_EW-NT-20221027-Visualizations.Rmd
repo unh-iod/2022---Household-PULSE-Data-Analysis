@@ -4,6 +4,8 @@ output: html_document
 date: "2022-10-27"
 ---
 
+Input from "05.1---PULSE_EW-NT-20221021 visualization intermediate version.sas"
+
 ```{r setup, include=FALSE, warning=FALSE, error=FALSE}
 library(ggplot2)
 library(tidyverse)
@@ -16,7 +18,7 @@ library(plotly)
 
 ```{r}
 sample_summary <- read_csv("../SAS/PULSE_vis.csv") 
-sample_summary 
+sample_summary
 
 #set dispaly order
 sample_summary$lbl_vacstatus <- factor(sample_summary$lbl_vacstatus, levels = c("2+ Booster Received","Booster Received","Vaccinated (or intend to be)","Vaccinated","Partially Vaccinated","Not Vaccinated","Missing Data"))

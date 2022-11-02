@@ -597,42 +597,100 @@ data ew_subset;
 		WHYNOT;
 run;
 
-proc print data=ew_subset(obs=150 where=(week=28));run;
-
-Proc export data=ew_subset 
-	outfile='C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\PULSE_vis.csv' 
-	dbms=csv 
-	replace;
-run;
-
-* 3 Calculate metrics by vacstatus;
-proc surveyfreq data=week_all varmethod=BRR(FAY);
+* 3 Calculate metrics for population;
+proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) varmethod=BRR(FAY);
 	weight PWEIGHT;
 	repweights PWEIGHT1-PWEIGHT80;
-	table lbl_vacstatus;
-	ods output oneway=populations_vacstatus_summary;
+	table shot;
+	ods output oneway=populations_summary;
 	by week;
 run;
-
-proc export 
-	data = populations_vacstatus_summary 
-	outfile="C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vacstatus_summary"
-	dbms = xlsx
-	replace; 
+* Initialize table 1 population counts;
+data vac_table1_init;
+	set populations_summary;
+	drop Table shot _Skipline;
 run;
-
-* 3.1 Calculate metrics by vacstatus*WHYNOT;
-proc surveyfreq data=week_all varmethod=BRR(FAY);
+* Get sample sizes;
+proc transpose data=vac_table1_init out=vac_table1_w1 prefix=F_shot;
+	by week;
+	id F_shot;
+	var Frequency;
+run;
+* Prepare table1 for merge;
+data vac_table1;
+	set vac_table1_w1(drop= _name_ F_shot0 F_shot1);
+	rename F_shotTotal = tep_sample_count;
+* Get population sizes;
+proc transpose data=vac_table1_init out=vac_table1_w2 prefix=F_shot;
+	by week;
+	id F_shot;
+	var WgtFreq;
+run;
+data vac_table1_w2;
+	set vac_table1_w2(drop= _name_ _label_ F_shot0);
+	rename F_shotTotal = tep_pop_count
+		   F_shot1 = tep_pop_shot_count;
+run;
+proc transpose data=vac_table1_init out=vac_table1_w3 prefix=F_shot;
+	by week;
+	id F_shot;
+	var StdDev;
+run;
+data vac_table1_w3;
+	set vac_table1_w3(drop= _name_ _label_ F_shot0);
+	rename F_shotTotal = tep_pop_size_count_se
+		   F_shot1 = tep_pop_shot_count_se;
+run;
+proc transpose data=vac_table1_init out=vac_table1_w4 prefix=F_shot;
+	by week;
+	id F_shot;
+	var Percent;
+run;
+data vac_table1_w4;
+	set vac_table1_w4(drop= _name_ F_shot0 F_shotTotal);
+	rename F_shot1 = tep_pop_shot_perc;
+run;
+proc transpose data=vac_table1_init out=vac_table1_w5 prefix=F_shot;
+	by week;
+	id F_shot;
+	var StdErr;
+run;
+data vac_table1_w5;
+	set vac_table1_w5(drop= _name_ _label_ F_shot0 F_shotTotal);
+	rename F_shot1 = tep_pop_shot_perc_se;
+run;
+*Merge wide tables to table1;
+data vac_table1;
+	merge vac_table1
+		  vac_table1_w2
+		  vac_table1_w3
+		  vac_table1_w4
+		  vac_table1_w5;
+	by week;
+run;
+* Reorder Columns;
+data vac_table1;
+	retain week
+		   tep_sample_count
+		   tep_pop_count
+		   tep_pop_size_count_se
+		   tep_pop_shot_count
+		   tep_pop_shot_count_se
+		   tep_pop_shot_perc
+		   tep_pop_shot_perc_se;
+	set vac_table1;
+run;
+* Preprocess sort to run multiple by statements;
+proc sort data=week_all; 
+	by week lbl_allewgrp_layer3_EW; 
+run;
+* 3 Calculate metrics for EW vs. non-EW vs. At Home;
+proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) varmethod=BRR(FAY);
 	weight PWEIGHT;
 	repweights PWEIGHT1-PWEIGHT80;
-	table lbl_vacstatus*WHYNOT;
-	ods output crosstabs=populations_vs_wn_summary;
-	by week;
+	table lbl_shot;
+	ods output oneway=populations_ew_summary;
+	by week lbl_allewgrp_layer3_EW;
 run;
 
-proc export 
-	data = populations_vs_wn_summary 
-	outfile="C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_whynot_summary"
-	dbms = xlsx
-	replace; 
-run;
+proc print data=populations_ew_summary; run;

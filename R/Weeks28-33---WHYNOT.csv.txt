@@ -1,0 +1,12 @@
+name,Text
+WHYNOT1,I am concerned about possible side effects of a COVID-19 vaccine
+WHYNOT2,I don’t know if a COVID-19 vaccine will work
+WHYNOT3,I don’t believe I need a COVID-19 vaccine
+WHYNOT4,I don’t like vaccines
+WHYNOT5,My doctor has not recommended it
+WHYNOT6,I plan to wait and see if it is safe and may get it later
+WHYNOT7,I think other people need it more than I do right now
+WHYNOT8,I am concerned about the cost of a COVID-19 vaccine
+WHYNOT9,I don’t trust COVID-19 vaccines
+WHYNOT10,I don’t trust the government
+WHYNOT11,Other
