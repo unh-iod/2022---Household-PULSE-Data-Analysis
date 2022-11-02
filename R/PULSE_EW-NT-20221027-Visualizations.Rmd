@@ -8,17 +8,102 @@ date: "2022-10-27"
 library(ggplot2)
 library(tidyverse)
 library(readxl)
+library(scales)
+library(plotly)
 
-#Load data preprocessed in SAS
-populations_summary <- read_excel("../SAS/populations_summary.xlsx") %>%
-  select(-`_SkipLine`) %>%
-  filter(!(is.na(lbl_shot) | is.na(lbl_allewgrp_layer3_EW)))
 ```
-
 # Sample Summary
 
 ```{r}
-ggplot(populations_summary,aes(x=WEEK, y=WgtFreq)) + 
-    geom_line(aes(color = c(lbl_allewgrp_layer3_EW,lbl_shot)))
+sample_summary <- read_csv("../SAS/PULSE_vis.csv") 
+sample_summary
+
+#set dispaly order
+sample_summary$lbl_vacstatus <- factor(sample_summary$lbl_vacstatus, levels = c("2+ Booster Received","Booster Received","Vaccinated (or intend to be)","Vaccinated","Partially Vaccinated","Not Vaccinated","Missing Data"))
 ```
 
+```{r}
+p <- list()
+p$`_1` <- sample_summary %>% 
+  group_by(WEEK,lbl_vacstatus) %>%
+  summarize(count = n()) %>%
+  complete(lbl_vacstatus, fill = list(count = 0)) %>%
+  ggplot(aes(x=WEEK, y=count, fill=lbl_vacstatus)) + 
+    geom_area()
+
+ggplotly(p$`_1`)
+```
+
+# Population Summary
+
+```{r}
+#Load data 
+populations_vacstatus_summary <- read_excel("../SAS/populations_vacstatus_summary.xlsx") %>%
+  select(-`_SkipLine`) %>%
+  filter(!(is.na(lbl_vacstatus) | F_lbl_vacstatus == "Total")) %>%
+  select(-Table,-F_lbl_vacstatus)
+
+populations_vacstatus_summary$lbl_vacstatus <- factor(populations_vacstatus_summary$lbl_vacstatus, levels = c("2+ Booster Received","Booster Received","Vaccinated (or intend to be)","Vaccinated","Partially Vaccinated","Not Vaccinated","Missing Data"))
+```
+
+```{r}
+p$`_2` <- populations_vacstatus_summary %>%
+  group_by(WEEK,lbl_vacstatus) %>%
+  summarize(WgtFreq = sum(WgtFreq)) %>%
+  complete(lbl_vacstatus, fill = list(WgtFreq = 0)) %>%
+  ggplot(aes(x=WEEK, y=WgtFreq, fill=lbl_vacstatus)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+
+ggplotly(p$`_2`)
+```
+
+```{r}
+#Load data 
+populations_whynot_summary <- read_excel("../SAS/populations_whynot_summary.xlsx") %>%
+  select(-`_SkipLine`) %>%
+  filter(!(is.na(lbl_vacstatus) | F_lbl_vacstatus == "Total" | F_WHYNOT == "Total")) %>%
+  select(-Table,-F_lbl_vacstatus,-F_WHYNOT)
+
+populations_whynot_summary$lbl_vacstatus <- factor(populations_whynot_summary$lbl_vacstatus, levels = c("2+ Booster Received","Booster Received","Vaccinated (or intend to be)","Vaccinated","Partially Vaccinated","Not Vaccinated","Missing Data"))
+```
+
+# Confirm full rollup on lbl_vacstatus
+
+```{r}
+p$`_3` <- populations_whynot_summary %>%
+  group_by(WEEK,lbl_vacstatus) %>%
+  drop_na() %>%
+  summarize(WgtFreq = sum(WgtFreq)) %>%
+  complete(lbl_vacstatus, fill = list(WgtFreq = 0)) %>%
+  ggplot(aes(x=WEEK, y=WgtFreq, fill=lbl_vacstatus)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+
+ggplotly(p$`_3`)
+```
+
+# Split out on WHYNOT
+
+```{r}
+populations_whynot_summary %>%
+  filter(Frequency != 0) %>%
+  group_by(WEEK,lbl_vacstatus) %>%
+  summarize(Percent_denom = sum(Percent)) %>%  
+  arrange(WEEK,lbl_vacstatus,Percent_denom)
+
+
+populations_whynot_summary %>%
+  filter(Frequency != 0) %>%
+  separate(col = WHYNOT,
+           into = paste("WHYNOT",c(1:13),sep='')) %>%
+    group_by(WEEK, lbl_vacstatus) %>%
+  pivot_longer(cols = starts_with("WHYNOT")) %>%
+  filter(value == "1") %>%
+  group_by(WEEK,lbl_vacstatus,name) %>%
+  summarize(WgtFreq = sum(WgtFreq),
+            Percent = sum(Percent)) %>%  
+  arrange(WEEK,lbl_vacstatus,desc(WgtFreq))
+
+
+```
