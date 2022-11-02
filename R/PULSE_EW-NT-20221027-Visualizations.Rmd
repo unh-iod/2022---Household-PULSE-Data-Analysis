@@ -16,7 +16,7 @@ library(plotly)
 
 ```{r}
 sample_summary <- read_csv("../SAS/PULSE_vis.csv") 
-sample_summary
+sample_summary 
 
 #set dispaly order
 sample_summary$lbl_vacstatus <- factor(sample_summary$lbl_vacstatus, levels = c("2+ Booster Received","Booster Received","Vaccinated (or intend to be)","Vaccinated","Partially Vaccinated","Not Vaccinated","Missing Data"))
@@ -66,6 +66,10 @@ populations_whynot_summary <- read_excel("../SAS/populations_whynot_summary.xlsx
   select(-Table,-F_lbl_vacstatus,-F_WHYNOT)
 
 populations_whynot_summary$lbl_vacstatus <- factor(populations_whynot_summary$lbl_vacstatus, levels = c("2+ Booster Received","Booster Received","Vaccinated (or intend to be)","Vaccinated","Partially Vaccinated","Not Vaccinated","Missing Data"))
+
+lookup1 <- read.csv('Weeks28-33---WHYNOT.csv.txt')
+lookup2 <- read.csv('Weeks34-39---WHYNOT.csv.txt')
+lookup3 <- read.csv('Weeks40-45---WHYNOT.csv.txt')
 ```
 
 # Confirm full rollup on lbl_vacstatus
@@ -86,12 +90,45 @@ ggplotly(p$`_3`)
 # Split out on WHYNOT
 
 ```{r}
+reasons <- populations_whynot_summary %>%
+  filter(Frequency != 0) %>%
+  separate(col = WHYNOT,
+           into = paste("WHYNOT",c(1:13),sep='')) %>%
+    group_by(WEEK, lbl_vacstatus) %>%
+  pivot_longer(cols = starts_with("WHYNOT")) %>%
+  filter(value == "1") %>%
+  group_by(WEEK,lbl_vacstatus,name) %>%
+  summarize(WgtFreq = sum(WgtFreq),
+            Percent = sum(Percent)) %>%  
+  arrange(WEEK,lbl_vacstatus,name) %>%
+
+left_join(
+
 populations_whynot_summary %>%
   filter(Frequency != 0) %>%
   group_by(WEEK,lbl_vacstatus) %>%
-  summarize(Percent_denom = sum(Percent)) %>%  
-  arrange(WEEK,lbl_vacstatus,Percent_denom)
+  summarize(Percent_denom = sum(Percent),
+            Total_vacstatus = sum(WgtFreq)) %>%  
+  arrange(WEEK,lbl_vacstatus,Percent_denom),
 
+by=c('WEEK','lbl_vacstatus')
+
+) %>%
+
+  mutate(Percent = round(Percent/Percent_denom*100,1)) %>%
+  select(-Percent_denom) %>%
+  filter(lbl_vacstatus=='Not Vaccinated' & WEEK %in% c(28:33)) %>%
+  
+left_join(
+  
+lookup1, by='name'
+
+) %>%
+  
+  mutate(name = factor(name, levels = c("WHYNOT1","WHYNOT2","WHYNOT3","WHYNOT4","WHYNOT5","WHYNOT6","WHYNOT7","WHYNOT8","WHYNOT9","WHYNOT10","WHYNOT11","WHYNOT12","WHYNOT13"))) %>%
+  arrange(WEEK,name) %>%
+  
+union(
 
 populations_whynot_summary %>%
   filter(Frequency != 0) %>%
@@ -103,7 +140,166 @@ populations_whynot_summary %>%
   group_by(WEEK,lbl_vacstatus,name) %>%
   summarize(WgtFreq = sum(WgtFreq),
             Percent = sum(Percent)) %>%  
-  arrange(WEEK,lbl_vacstatus,desc(WgtFreq))
+  arrange(WEEK,lbl_vacstatus,name) %>%
+
+left_join(
+
+populations_whynot_summary %>%
+  filter(Frequency != 0) %>%
+  group_by(WEEK,lbl_vacstatus) %>%
+  summarize(Percent_denom = sum(Percent),
+            Total_vacstatus = sum(WgtFreq)) %>%  
+  arrange(WEEK,lbl_vacstatus,Percent_denom),
+
+by=c('WEEK','lbl_vacstatus')
+
+) %>%
+
+  mutate(Percent = round(Percent/Percent_denom*100,1)) %>%
+  select(-Percent_denom) %>%
+  filter(lbl_vacstatus=='Not Vaccinated' & WEEK %in% c(34:39)) %>%
+  
+left_join(
+  
+lookup2, by='name'
+
+) %>%
+  
+  mutate(name = factor(name, levels = c("WHYNOT1","WHYNOT2","WHYNOT3","WHYNOT4","WHYNOT5","WHYNOT6","WHYNOT7","WHYNOT8","WHYNOT9","WHYNOT10","WHYNOT11","WHYNOT12","WHYNOT13"))) %>%
+  arrange(WEEK,name)
+  
+) %>%
+  
+union(
+
+populations_whynot_summary %>%
+  filter(Frequency != 0) %>%
+  separate(col = WHYNOT,
+           into = paste("WHYNOT",c(1:13),sep='')) %>%
+    group_by(WEEK, lbl_vacstatus) %>%
+  pivot_longer(cols = starts_with("WHYNOT")) %>%
+  filter(value == "1") %>%
+  group_by(WEEK,lbl_vacstatus,name) %>%
+  summarize(WgtFreq = sum(WgtFreq),
+            Percent = sum(Percent)) %>%  
+  arrange(WEEK,lbl_vacstatus,name) %>%
+
+left_join(
+
+populations_whynot_summary %>%
+  filter(Frequency != 0) %>%
+  group_by(WEEK,lbl_vacstatus) %>%
+  summarize(Percent_denom = sum(Percent),
+            Total_vacstatus = sum(WgtFreq)) %>%  
+  arrange(WEEK,lbl_vacstatus,Percent_denom),
+
+by=c('WEEK','lbl_vacstatus')
+
+) %>%
+
+  mutate(Percent = round(Percent/Percent_denom*100,1)) %>%
+  select(-Percent_denom) %>%
+  filter(lbl_vacstatus=='Not Vaccinated' & WEEK %in% c(40:45)) %>%
+  
+left_join(
+  
+lookup3, by='name'
+
+) %>%
+  
+  mutate(name = factor(name, levels = c("WHYNOT1","WHYNOT2","WHYNOT3","WHYNOT4","WHYNOT5","WHYNOT6","WHYNOT7","WHYNOT8","WHYNOT9","WHYNOT10","WHYNOT11","WHYNOT12","WHYNOT13"))) %>%
+  arrange(WEEK,name)
+  
+) 
+```
+
+```{r}
+p$`_4` <- reasons %>%
+  ggplot(aes(WEEK,Text,fill=Percent)) + 
+  geom_tile(color="black") + 
+  geom_text(aes(label = Percent), color = "black", size = 2) +
+  scale_fill_gradient(low = "white", high = "red") +
+  coord_fixed() + 
+  theme(axis.text.y = element_text(size=5))+
+  scale_x_discrete(limits=c(28:45))
+
+p$`_4`
+```
+
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "Other") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+```
+
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "My doctor has not recommended it") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+```
+
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "I plan to wait and see if it is safe and may get it later") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+```
+
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "I don’t trust the government") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+```
+
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "I don’t trust COVID-19 vaccines") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+```
 
 
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "I don’t believe I need a COVID-19 vaccine") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
+```
+
+```{r}
+reasons %>% 
+  select(-name) %>%
+  filter(Text == "I am concerned about possible side effects of a COVID-19 vaccine") %>%
+  mutate(inverse_condition = Total_vacstatus-WgtFreq) %>%
+  pivot_longer(cols=c('WgtFreq','inverse_condition')) %>%
+  ggplot(aes(x=WEEK, y=value, fill=name)) + 
+    geom_area() +
+    scale_y_continuous(labels = label_number(suffix = " M", scale = 1e-6))
 ```
