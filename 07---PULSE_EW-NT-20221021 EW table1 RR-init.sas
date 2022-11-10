@@ -879,39 +879,227 @@ data vac_table1;
 		wfh_s_pop_count
 		wfh_s_pop_count_se
 		wfh_s_pop_perc
-		wfh_s_pop_perc_se;
+		wfh_s_pop_perc_se
+		reference;
 	set vac_table1_ew;
-	drop reference;
+	rr_ewnew_s_pop_perc1 = ew_s_pop_perc/no_ew_s_pop_perc; *Compare EWs to Non-Ews;
+	rr_ewwfh_s_pop_perc1 = ew_s_pop_perc/wfh_s_pop_perc; *Compare EWs to workers working at home;
+	rr_ewtime_s_pop_perc1 = tep_pop_shot_perc/reference; *Compare within category;
 run;
-proc print data=vac_table1_ew; run;
-
-*******************************************;
-*Attempt to do glm;
-
-*proc genmod data=week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) descending;
-*	class allewgrp_layer3_EW week female hisprace educ est_st;
-*	model shot = allewgrp_layer3_EW week female hisprace educ est_st / dist = bin link = logit lrci;
-*	weight PWEIGHT;
-*run;
-
-*proc genmod data=week_all(where=(allewgrp_layer3_EW in (2,1) and shot in (0,1) and week=28)) descending;
-*	class allewgrp_layer3_EW;
-*	model shot = allewgrp_layer3_EW / dist = bin link = logit lrci noint;
-*	weight PWEIGHT;
-*run;
-
-proc sort data=week_all; 
-	by week allewgrp_layer3_EW; 
+* Get RR & ConfInt;	
+proc sort data=week_all out=week_all;
+	by week descending shot descending allewgrp_layer3_EW;
 run;
-proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2) and shot in (1,0))) varmethod=BRR(FAY);
+proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2) and shot in (1,0))) varmethod=BRR(FAY) order=data;
 	weight PWEIGHT;
 	repweights PWEIGHT1-PWEIGHT80;
 	table allewgrp_layer3_EW*shot /or;
-	ods output OddsRatio=populations_summary_rr;
-	by week ;
+	ods output OddsRatio=rr1;
+	by week;
+run;
+data vac_table1_ci1;
+	set rr1(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewwfh_s_pop_perc2
+		LowerCL = rr_ewwfh_s_pop_perc2_lci
+		UpperCL = rr_ewwfh_s_pop_perc2_uci;
+* Get RR & ConfInt;
+proc sort data=week_all out=week_all;
+	by week descending shot allewgrp_layer3_EW;
+run;
+proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (2,5) and shot in (1,0))) varmethod=BRR(FAY) order=data;
+	weight PWEIGHT;
+	repweights PWEIGHT1-PWEIGHT80;
+	table allewgrp_layer3_EW*shot /or;
+	ods output OddsRatio=rr2;
+	by week;
+run;
+data vac_table1_ci2;
+	set rr2(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewnew_s_pop_perc2
+		LowerCL = rr_ewnew_s_pop_perc2_lci
+		UpperCL = rr_ewnew_s_pop_perc2_uci;
+* Get RR & ConfInt;
+data week_all;
+	set week_all;
+	ref_set = 0;
+data reference_set;
+	set week_all(where=(week=28));
+	ref_set = 1; 
+run;
+data full_reference_set;
+	set reference_set;
 run;
 
-proc print data=test1;run;
+%macro reference_stack(week1,week2);
+%do wk = &week1. %to &week2.;
+
+data reference_set&wk.;
+	set reference_set;
+	week = &wk.;
+run;
+
+proc append base = full_reference_set data = reference_set&wk. force;
+run;
+
+%end;
+%mend reference_stack;
+
+%reference_stack(29,48);
+
+proc append base = full_reference_set data = week_all force;
+run;
+
+proc sort data=full_reference_set out=full_reference_set;
+	by week descending shot ref_set;
+run;
+* Get RR and CI for reference;
+proc surveyfreq data=full_reference_set(where=(allewgrp_layer3_EW in (1,2,5) and shot in (1,0))) varmethod=BRR(FAY) order=data;
+	weight PWEIGHT;
+	repweights PWEIGHT1-PWEIGHT80;
+	table ref_set*shot /or;
+	ods output OddsRatio=rr3;
+	by week;
+run;
+data vac_table1_ci3;
+	set rr3(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewtime_s_pop_perc2
+		LowerCL = rr_ewtime_s_pop_perc2_lci
+		UpperCL = rr_ewtime_s_pop_perc2_uci;
+data reference_set_rolling;
+	set week_all;
+	ref_set = 1; 
+run;
+data reference_set_rolling;
+	set reference_set_rolling;
+	week = week+1;
+run;
+proc append base = reference_set_rolling data = week_all force;
+run;
+
+proc sort data=reference_set_rolling out=reference_set_rolling;
+	by week descending shot ref_set;
+run;
+* Get RR and CI for reference;
+proc surveyfreq data=reference_set_rolling(where=(allewgrp_layer3_EW in (1,2,5) and shot in (1,0))) varmethod=BRR(FAY) order=data;
+	weight PWEIGHT;
+	repweights PWEIGHT1-PWEIGHT80;
+	table ref_set*shot /or;
+	ods output OddsRatio=rr4;
+	by week;
+run;
+data vac_table1_ci4;
+	set rr4(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewtimeroll_s_pop_perc2
+		LowerCL = rr_ewtimeroll_s_pop_perc2_lci
+		UpperCL = rr_ewtimeroll_s_pop_perc2_uci;
+*Merge to table1;
+data vac_table1;
+	merge 
+		vac_table1
+		vac_table1_ci2
+		vac_table1_ci1
+		vac_table1_ci3
+		vac_table1_ci4;
+	by week;
+data vac_table1;
+	set vac_table1;
+	rr_ewnew_s_pop_perc2_se = log(rr_ewnew_s_pop_perc2_lci/rr_ewnew_s_pop_perc2)*(-1/1.96);
+	rr_ewwfh_s_pop_perc2_se = log(rr_ewwfh_s_pop_perc2_lci/rr_ewwfh_s_pop_perc2)*(-1/1.96);
+	rr_ewtime_s_pop_perc2_se = log(rr_ewtime_s_pop_perc2_lci/rr_ewtime_s_pop_perc2)*(-1/1.96);
+	rr_ewtimeroll_s_pop_perc2_se = log(rr_ewtimeroll_s_pop_perc2_lci/rr_ewtimeroll_s_pop_perc2)*(-1/1.96);
+	rr_ewnew_s_pop_perc2_t = log(1/rr_ewnew_s_pop_perc2)*(1/rr_ewnew_s_pop_perc2_se);
+	rr_ewwfh_s_pop_perc2_t = log(1/rr_ewwfh_s_pop_perc2)*(1/rr_ewwfh_s_pop_perc2_se);
+	rr_ewtime_s_pop_perc2_t = log(1/rr_ewtime_s_pop_perc2)*(1/rr_ewtime_s_pop_perc2_se);
+	rr_ewtimeroll_s_pop_perc2_t = log(1/rr_ewtimeroll_s_pop_perc2)*(1/rr_ewtimeroll_s_pop_perc2_se);
+	rr_ewnew_s_pop_perc2_p = cdf("t", rr_ewnew_s_pop_perc2_t, 80);
+	rr_ewwfh_s_pop_perc2_p = cdf("t", rr_ewwfh_s_pop_perc2_t, 80);
+	rr_ewtime_s_pop_perc2_p = cdf("t", rr_ewtime_s_pop_perc2_t, 80);
+	rr_ewtimeroll_s_pop_perc2_p = cdf("t", rr_ewtimeroll_s_pop_perc2_t, 80);
+run;
+
+data vac_table1;
+		retain
+		week
+		tep_sample_count
+		tep_pop_count
+		tep_pop_size_count_se
+		tep_pop_shot_count
+		tep_pop_shot_count_se
+		tep_pop_shot_perc
+		tep_pop_shot_perc_se
+		ew_sample_count
+		ew_pop_count
+		ew_pop_count_se
+		ew_s_pop_count
+		ew_s_pop_count_se
+		ew_s_pop_perc
+		ew_s_pop_perc_se
+		ew_sample_count
+		no_ew_sample_count
+		no_ew_pop_count
+		no_ew_pop_count_se
+		no_ew_s_pop_count
+		no_ew_s_pop_count_se
+		no_ew_s_pop_perc
+		no_ew_s_pop_perc_se
+		wfh_sample_count
+		wfh_pop_count
+		wfh_pop_count_se
+		wfh_s_pop_count
+		wfh_s_pop_count_se
+		wfh_s_pop_perc
+		wfh_s_pop_perc_se
+		rr_ewnew_s_pop_perc1
+		rr_ewnew_s_pop_perc2
+		rr_ewnew_s_pop_perc2_lci
+		rr_ewnew_s_pop_perc2_uci
+		rr_ewnew_s_pop_perc2_se
+		rr_ewnew_s_pop_perc2_t
+		rr_ewnew_s_pop_perc2_p
+		rr_ewwfh_s_pop_perc1
+		rr_ewwfh_s_pop_perc2
+		rr_ewwfh_s_pop_perc2_lci
+		rr_ewwfh_s_pop_perc2_uci
+		rr_ewwfh_s_pop_perc2_se
+		rr_ewwfh_s_pop_perc2_t
+		rr_ewwfh_s_pop_perc2_p
+		rr_ewtime_s_pop_perc1
+		rr_ewtime_s_pop_perc2
+		rr_ewtime_s_pop_perc2
+		rr_ewtime_s_pop_perc2_lci
+		rr_ewtime_s_pop_perc2_uci
+		rr_ewtime_s_pop_perc2_se
+		rr_ewtime_s_pop_perc2_t
+		rr_ewtime_s_pop_perc2_p
+		rr_ewtimeroll_s_pop_perc2
+		rr_ewtimeroll_s_pop_perc2
+		rr_ewtimeroll_s_pop_perc2_lci
+		rr_ewtimeroll_s_pop_perc2_uci
+		rr_ewtimeroll_s_pop_perc2_se
+		rr_ewtimeroll_s_pop_perc2_t
+		rr_ewtimeroll_s_pop_perc2_p;
+	drop reference;
+	set vac_table1;
+run;
+
+proc export 
+	data = vac_table1 
+	outfile="C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table1"
+	dbms = xlsx
+	replace; 
+run;
+
+
+
+
 
 
 

@@ -1,14 +1,8 @@
-********************************************************************/
+********************************************************************
 * NIOSH WSH (PAR-20-312) Project - Household PULSE Data Analysis
 * Data: HPS data phase 3.1-3.5 (week 28-48)
 * By: Nate Thomas
 ********************************************************************
-
-********************************************************************
-* Table of Contents
-* 1. Read data folders;
-
-********************************************************************/
 
 * 1. Read data folders;
 libname HPS_temp 'C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\'; /*my folder for temp datasets*/
@@ -46,7 +40,6 @@ libname PULSE47 'C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analy
 libname PULSE48 'C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\Data\SAS\48\'; 
 
 * Phase 3.6;
-
 *libname PULSE49 'C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\Data\SAS\49\'; 
 
 * Datasets to work folder;
@@ -59,11 +52,8 @@ proc datasets library = work;
 	copy out= hps_temp in= work;
 run;
 
-* 2. Clean and prepare data;
-* Use Macro Loop here;
 
-* 2.1 Read data using Macro;
-* 2.1.1 Read data %macro pulse_data_read;
+* 2. Clean and prepare data;
 * Year 2021 and week 28-40 vs year 2022 and week 41-45;
 %macro pulse_data_read (week1, week2); 
 %do wk = &week1. %to &week2.;
@@ -203,7 +193,6 @@ run;
 
 options mprint;
 %pulse_data_read (28,48);
-
 
 * 2.2 Clean data and create new variables - independent variables - Macro pulse_var_ind;
 %macro pulse_var_ind (week1, week2);
@@ -487,7 +476,6 @@ run;
 * Run macro codes;
 %pulse_var_dep(28,48);
 
-
 * 2.4 Combine datasets;
 * 2.4.1 Append data;
 data week_all;
@@ -503,6 +491,7 @@ run;
 * Run macro codes;
 %Append(29,48);
 
+*Collect and define the whynot reason - collapse into a single word for visualization post processing in R;
 data week_all;
 	set week_all;
 	if 28 <= week <= 33 then do;
@@ -565,7 +554,7 @@ data week_all;
 					  WHYNOT13);
 run;
 
-* 2.4.2 Save data for Stata analysis;
+* Save data for R analysis;
 data ew_subset;
 	set week_all;
 	keep 
@@ -603,8 +592,28 @@ Proc export data=ew_subset
 	replace;
 run;
 
+* Prepare reference set (numerator);
+data week_all;
+	set week_all;
+	ref_set = 0;
+
+********************************************************************
+********************************************************************
+* Iterate through bands of information broken out by demographic indicator variables;
+
+%macro bander(
+	raw_band=, 
+	reference=,
+	first_band=, 
+	file=
+	);
+
+data raw_band;
+	set &raw_band.;
+run;
+
 * 3 Calculate metrics for population;
-proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) varmethod=BRR(FAY);
+proc surveyfreq data=raw_band varmethod=BRR(FAY);
 	weight PWEIGHT;
 	repweights PWEIGHT1-PWEIGHT80;
 	table shot;
@@ -626,6 +635,7 @@ run;
 data vac_table1;
 	set vac_table1_w1(drop= _name_ F_shot0 F_shot1);
 	rename F_shotTotal = tep_sample_count;
+run;
 * Get population sizes;
 proc transpose data=vac_table1_init out=vac_table1_w2 prefix=F_shot;
 	by week;
@@ -687,11 +697,11 @@ data vac_table1;
 	set vac_table1;
 run;
 * Preprocess sort to run multiple by statements;
-proc sort data=week_all; 
+proc sort data=raw_band; 
 	by week lbl_allewgrp_layer3_EW; 
 run;
 * 3 Calculate metrics for EW vs. non-EW vs. At Home;
-proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) varmethod=BRR(FAY);
+proc surveyfreq data=raw_band varmethod=BRR(FAY);
 	weight PWEIGHT;
 	repweights PWEIGHT1-PWEIGHT80;
 	table shot;
@@ -713,6 +723,7 @@ proc transpose data=vac_table1_ew_w1 out=vac_table1_ew_w1 prefix=lbl_allewgrp_la
 	by week;
 	id lbl_allewgrp_layer3_EW;
 	var F_shotTotal;
+run;
 * Prepare for merge;
 data vac_table1_ew_w1;
 	set vac_table1_ew_w1(drop= _name_);
@@ -770,6 +781,7 @@ data vac_table1_ew_w4;
 	rename lbl_allewgrp_layer3_EWEssential = ew_s_pop_count
 		   lbl_allewgrp_layer3_EWNon_Essent = no_ew_s_pop_count
 		   lbl_allewgrp_layer3_EWWorking_Fr = wfh_s_pop_count;
+run;
 proc transpose data=vac_table1_ew_init out=vac_table1_ew_w5 prefix=F_shot;
 	by week lbl_allewgrp_layer3_EW;
 	id F_shot;
@@ -834,19 +846,26 @@ data vac_table1;
 		  vac_table1_ew;
 	by week;
 run;
-* Create reference;
-data reference;
-	set vac_table1(where=(week=28));
-	keep tep_pop_shot_perc;
-	rename tep_pop_shot_perc = reference;
-	do i = 1 to 21;
-		reference = reference;
-		output;
-	end;
+
+* Create reference for first band;
+data ref;
+	if &first_band. = 1 then do;
+		set vac_table1(where=(week=28));
+		keep tep_pop_shot_perc;
+		rename tep_pop_shot_perc = ref;
+		do i = 1 to 21;
+			ref = ref;
+			output;
+		end;
+	if &first_band. = 0 then do;
+		do i = 1 to 21;
+			ref = 0;
+			output;
+		end;
 run;
-data vac_table1_ew;
+data vac_table1;
 	merge vac_table1
-		  reference;
+		  ref;
 run;
 data vac_table1;
 		retain
@@ -880,40 +899,287 @@ data vac_table1;
 		wfh_s_pop_count_se
 		wfh_s_pop_perc
 		wfh_s_pop_perc_se;
-	set vac_table1_ew;
-	drop reference;
+	set vac_table1;
+	rr_ewnew_s_pop_perc1 = ew_s_pop_perc/no_ew_s_pop_perc; *Compare EWs to Non-Ews;
+	rr_ewwfh_s_pop_perc1 = ew_s_pop_perc/wfh_s_pop_perc; *Compare EWs to workers working at home;
+	rr_ewtime_s_pop_perc1 = tep_pop_shot_perc/ref; *Compare within category;
+	drop ref;
 run;
-proc print data=vac_table1_ew; run;
 
-*******************************************;
-*Attempt to do glm;
-
-*proc genmod data=week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) descending;
-*	class allewgrp_layer3_EW week female hisprace educ est_st;
-*	model shot = allewgrp_layer3_EW week female hisprace educ est_st / dist = bin link = logit lrci;
-*	weight PWEIGHT;
-*run;
-
-*proc genmod data=week_all(where=(allewgrp_layer3_EW in (2,1) and shot in (0,1) and week=28)) descending;
-*	class allewgrp_layer3_EW;
-*	model shot = allewgrp_layer3_EW / dist = bin link = logit lrci noint;
-*	weight PWEIGHT;
-*run;
-
-proc sort data=week_all; 
-	by week allewgrp_layer3_EW; 
+proc delete data=vac_table1_ci1;
 run;
-proc surveyfreq data=week_all(where=(allewgrp_layer3_EW in (1,2) and shot in (1,0))) varmethod=BRR(FAY);
+proc delete data=vac_table1_ci2;
+run;
+proc delete data=vac_table1_ci3;
+run;
+proc delete data=vac_table1_ci4;
+run;
+* Get RR & ConfInt;	
+proc sort data=raw_band out=raw_band;
+	by week descending shot descending allewgrp_layer3_EW;
+run;
+proc delete data=rr1;
+run;
+proc surveyfreq data=raw_band(where=(allewgrp_layer3_EW in (1,2))) varmethod=BRR(FAY) order=data;
 	weight PWEIGHT;
 	repweights PWEIGHT1-PWEIGHT80;
 	table allewgrp_layer3_EW*shot /or;
-	ods output OddsRatio=populations_summary_rr;
-	by week ;
+	ods output OddsRatio=rr1;
+	by week;
+run;
+data vac_table1_ci1;
+	set rr1(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewwfh_s_pop_perc2
+		LowerCL = rr_ewwfh_s_pop_perc2_lci
+		UpperCL = rr_ewwfh_s_pop_perc2_uci;
+run;
+* Get RR & ConfInt;
+proc sort data=raw_band out=raw_band;
+	by week descending shot allewgrp_layer3_EW;
+run;
+proc delete data=rr2;
+run;
+proc surveyfreq data=raw_band(where=(allewgrp_layer3_EW in (2,5))) varmethod=BRR(FAY) order=data;
+	weight PWEIGHT;
+	repweights PWEIGHT1-PWEIGHT80;
+	table allewgrp_layer3_EW*shot /or;
+	ods output OddsRatio=rr2;
+	by week;
+run;
+data vac_table1_ci2;
+	set rr2(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewnew_s_pop_perc2
+		LowerCL = rr_ewnew_s_pop_perc2_lci
+		UpperCL = rr_ewnew_s_pop_perc2_uci;
+run;
+* Get RR and CI for reference;
+proc delete data=rr3;
+run;
+proc surveyfreq data=&reference. varmethod=BRR(FAY) order=data;
+	weight PWEIGHT;
+	repweights PWEIGHT1-PWEIGHT80;
+	table ref_set*shot /or;
+	ods output OddsRatio=rr3;
+	by week;
+run;
+data vac_table1_ci3;
+	set rr3(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewtime_s_pop_perc2
+		LowerCL = rr_ewtime_s_pop_perc2_lci
+		UpperCL = rr_ewtime_s_pop_perc2_uci;
+run;
+data reference_set_rolling;
+	set raw_band;
+	ref_set = 1; 
+run;
+data reference_set_rolling;
+	set reference_set_rolling;
+	week = week+1;
+run;
+proc append base = reference_set_rolling data = raw_band force;
+run;
+proc sort data=reference_set_rolling out=reference_set_rolling;
+	by week descending shot ref_set;
+run;
+* Get RR and CI for reference;
+proc delete data=rr4;
+run;
+proc surveyfreq data=reference_set_rolling varmethod=BRR(FAY) order=data;
+	weight PWEIGHT;
+	repweights PWEIGHT1-PWEIGHT80;
+	table ref_set*shot /or;
+	ods output OddsRatio=rr4;
+	by week;
+run;
+data vac_table1_ci4;
+	set rr4(where = (Statistic = "Column 1 Relative Risk"));
+	drop Table Statistic;
+	rename 
+		Estimate=rr_ewtimeroll_s_pop_perc2
+		LowerCL = rr_ewtimeroll_s_pop_perc2_lci
+		UpperCL = rr_ewtimeroll_s_pop_perc2_uci;
+run;
+*Merge to table1;
+data vac_table1;
+	merge 
+		vac_table1
+		vac_table1_ci2
+		vac_table1_ci1;
+	by week;
+run;
+data vac_table1;
+	merge 
+		vac_table1
+		vac_table1_ci3
+		vac_table1_ci4;
+	by week;
+run;
+data vac_table1;
+	set vac_table1;
+	rr_ewnew_s_pop_perc2_se = log(rr_ewnew_s_pop_perc2_lci/rr_ewnew_s_pop_perc2)*(-1/1.959964);
+	rr_ewwfh_s_pop_perc2_se = log(rr_ewwfh_s_pop_perc2_lci/rr_ewwfh_s_pop_perc2)*(-1/1.959964);
+	rr_ewtime_s_pop_perc2_se = log(rr_ewtime_s_pop_perc2_lci/rr_ewtime_s_pop_perc2)*(-1/1.959964);
+	rr_ewtimeroll_s_pop_perc2_se = log(rr_ewtimeroll_s_pop_perc2_lci/rr_ewtimeroll_s_pop_perc2)*(-1/1.959964);
+	rr_ewnew_s_pop_perc2_t = log(1/rr_ewnew_s_pop_perc2)*(1/rr_ewnew_s_pop_perc2_se);
+	rr_ewwfh_s_pop_perc2_t = log(1/rr_ewwfh_s_pop_perc2)*(1/rr_ewwfh_s_pop_perc2_se);
+	rr_ewtime_s_pop_perc2_t = log(1/rr_ewtime_s_pop_perc2)*(1/rr_ewtime_s_pop_perc2_se);
+	rr_ewtimeroll_s_pop_perc2_t = log(1/rr_ewtimeroll_s_pop_perc2)*(1/rr_ewtimeroll_s_pop_perc2_se);
+	rr_ewnew_s_pop_perc2_p = cdf("t", rr_ewnew_s_pop_perc2_t, 80);
+	rr_ewwfh_s_pop_perc2_p = cdf("t", rr_ewwfh_s_pop_perc2_t, 80);
+	rr_ewtime_s_pop_perc2_p = cdf("t", rr_ewtime_s_pop_perc2_t, 80);
+	rr_ewtimeroll_s_pop_perc2_p = cdf("t", rr_ewtimeroll_s_pop_perc2_t, 80);
+run;
+data vac_table1;
+		retain
+		week
+		tep_sample_count
+		tep_pop_count
+		tep_pop_size_count_se
+		tep_pop_shot_count
+		tep_pop_shot_count_se
+		tep_pop_shot_perc
+		tep_pop_shot_perc_se
+		ew_sample_count
+		ew_pop_count
+		ew_pop_count_se
+		ew_s_pop_count
+		ew_s_pop_count_se
+		ew_s_pop_perc
+		ew_s_pop_perc_se
+		ew_sample_count
+		no_ew_sample_count
+		no_ew_pop_count
+		no_ew_pop_count_se
+		no_ew_s_pop_count
+		no_ew_s_pop_count_se
+		no_ew_s_pop_perc
+		no_ew_s_pop_perc_se
+		wfh_sample_count
+		wfh_pop_count
+		wfh_pop_count_se
+		wfh_s_pop_count
+		wfh_s_pop_count_se
+		wfh_s_pop_perc
+		wfh_s_pop_perc_se
+		rr_ewnew_s_pop_perc1
+		rr_ewnew_s_pop_perc2
+		rr_ewnew_s_pop_perc2_lci
+		rr_ewnew_s_pop_perc2_uci
+		rr_ewnew_s_pop_perc2_se
+		rr_ewnew_s_pop_perc2_t
+		rr_ewnew_s_pop_perc2_p
+		rr_ewwfh_s_pop_perc1
+		rr_ewwfh_s_pop_perc2
+		rr_ewwfh_s_pop_perc2_lci
+		rr_ewwfh_s_pop_perc2_uci
+		rr_ewwfh_s_pop_perc2_se
+		rr_ewwfh_s_pop_perc2_t
+		rr_ewwfh_s_pop_perc2_p
+		rr_ewtime_s_pop_perc1
+		rr_ewtime_s_pop_perc2
+		rr_ewtime_s_pop_perc2
+		rr_ewtime_s_pop_perc2_lci
+		rr_ewtime_s_pop_perc2_uci
+		rr_ewtime_s_pop_perc2_se
+		rr_ewtime_s_pop_perc2_t
+		rr_ewtime_s_pop_perc2_p
+		rr_ewtimeroll_s_pop_perc2
+		rr_ewtimeroll_s_pop_perc2
+		rr_ewtimeroll_s_pop_perc2_lci
+		rr_ewtimeroll_s_pop_perc2_uci
+		rr_ewtimeroll_s_pop_perc2_se
+		rr_ewtimeroll_s_pop_perc2_t
+		rr_ewtimeroll_s_pop_perc2_p;
+	set vac_table1;
+run;
+proc export 
+	data = vac_table1 
+	outfile=&file.
+	dbms = xlsx
+	replace; 
+run;
+%mend;
+********************************************************************
+********************************************************************;
+* Population Overview band 1;
+
+data reference_set;
+	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and week=28));
+	ref_set = 1; 
+run;
+data full_reference_set;
+	set reference_set;
+run;
+%macro reference_stack(week1,week2);
+%do wk = &week1. %to &week2.;
+data reference_set&wk.;
+	set reference_set;
+	week = &wk.;
+run;
+proc append base = full_reference_set data = reference_set&wk. force;
+run;
+%end;
+%mend reference_stack;
+%reference_stack(29,48);
+
+proc append base = full_reference_set data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))) force;
+run;
+proc sort data=full_reference_set out=full_reference_set;
+	by week descending shot ref_set;
 run;
 
-proc print data=test1;run;
+%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+		reference = full_reference_set,
+		first_band = 1,
+		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table1");
 
+********************************************************************;
+* Population Overview band 1 pooled;
+data week_all_pooled;
+	set week_all;
+	week = 0;
+run;
 
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+		reference = ,
+		first_band = 0,
+		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table1_pooled");
 
+********************************************************************;
+* Population Male Overview band 2;
 
+data full_reference_set2;
+	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and female=1));
+	ref_set = 1; 
+run;
+proc append base = full_reference_set2
+	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and female=0));
+run;
 
+proc sort data=full_reference_set2 out=full_reference_set2;
+	by week descending shot ref_set;
+run;
+
+%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and female=0)),
+		reference = full_reference_set2,
+		first_band = 0,
+		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table1_male");
+
+********************************************************************;
+* Population Male Overview band 2 pooled;
+data week_all_pooled_gen;
+	set week_all;
+	week = 0
+	ref_set = female;
+run;
+
+%bander(raw_band = week_all_pooled_gen(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and female=0)),
+		reference = week_all_pooled_gen(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+		first_band = 0,
+		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table1_male_pooled");
