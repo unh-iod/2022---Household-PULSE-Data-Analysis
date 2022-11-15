@@ -1090,7 +1090,6 @@ data vac_table1;
 		rr_ewwfh_s_pop_perc2_p
 		rr_ewtime_s_pop_perc1
 		rr_ewtime_s_pop_perc2
-		rr_ewtime_s_pop_perc2
 		rr_ewtime_s_pop_perc2_lci
 		rr_ewtime_s_pop_perc2_uci
 		rr_ewtime_s_pop_perc2_se
@@ -1764,8 +1763,11 @@ proc append base=complete_vac_table1 data=stack&st. force;
 run;
 %end;
 %mend stack;
-
 %stack(2,34)
+
+data complete_vac_table1;
+	retain st week;
+	set complete_vac_table1;
 
 proc print data=complete_vac_table1;run;
 
