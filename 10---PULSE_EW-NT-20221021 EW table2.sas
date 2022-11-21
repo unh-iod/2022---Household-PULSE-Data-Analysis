@@ -1301,6 +1301,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1)));,
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1313,8 +1316,11 @@ run;
 ********************************************************************;
 * Population Overview band 1 pooled;
 data week_all_pooled;
-	set week_all(where=(week in (40:42)));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1)));
 	week = 0;
+run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
 run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1))),
 		health_reference = ,
@@ -1353,6 +1359,9 @@ data n_edu_reference_set;
 	set full_reference_set(where=(allewgrp_layer3 = 4));
 run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
 	by week descending shot ref_set;
 run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and female=0)),
@@ -1396,6 +1405,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and female=0)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1433,6 +1445,9 @@ data n_edu_reference_set;
 	set full_reference_set(where=(allewgrp_layer3 = 4));
 run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
 	by week descending shot ref_set;
 run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and female=1)),
@@ -1476,6 +1491,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and female=1)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1513,6 +1531,9 @@ data n_edu_reference_set;
 	set full_reference_set(where=(allewgrp_layer3 = 4));
 run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
 	by week descending shot ref_set;
 run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and agegroup1=1)),
@@ -1556,6 +1577,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and agegroup1=1)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1567,6 +1591,9 @@ run;
 
 ********************************************************************;
 * Age 21-49 Population band 5;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and agegroup1=2)),
 		health_reference = ,
 		edu_reference = ,
@@ -1585,7 +1612,7 @@ run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled,
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and agegroup1=2)),
 		health_reference = ,
 		edu_reference = ,
 		n_edu_reference = ,
@@ -1622,6 +1649,9 @@ data n_edu_reference_set;
 	set full_reference_set(where=(allewgrp_layer3 = 4));
 run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
 	by week descending shot ref_set;
 run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and agegroup1=3)),
@@ -1665,6 +1695,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and agegroup1=3)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1702,6 +1735,9 @@ data n_edu_reference_set;
 	set full_reference_set(where=(allewgrp_layer3 = 4));
 run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
 	by week descending shot ref_set;
 run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=1)),
@@ -1745,6 +1781,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=1)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1756,6 +1795,9 @@ run;
 
 ********************************************************************;
 * White Population band 8;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=2)),
 		health_reference = ,
 		edu_reference = ,
@@ -1812,6 +1854,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=3)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1853,6 +1898,9 @@ run;
 proc sort data=n_edu_reference_set out=n_edu_reference_set;
 	by week descending shot ref_set;
 run;
+proc sort data=week_all_pooled out=week_all_pooled;
+	by week descending shot ref_set;
+run;
 %bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=3)),
 		health_reference = health_reference_set,
 		edu_reference = edu_reference_set,
@@ -1862,74 +1910,87 @@ run;
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_black_pooled",
 		stack = 18);
 
-* Roll update end here;
-**************************************************;
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ********************************************************************;
 * Asian Population band 10;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=2));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=2));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=4));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=4));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=4)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=4)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_asian",
 		stack = 19);
 
 ********************************************************************;
-* Asian Population band 10 pooled;
+* Asian Population band 9 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=4));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=2));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=4)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=4)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_asian_pooled",
@@ -1938,17 +1999,40 @@ run;
 ********************************************************************;
 * Any Other Population band 11;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=2));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=2));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=5));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=5));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=5)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=5)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_other",
@@ -1957,14 +2041,42 @@ run;
 ********************************************************************;
 * Any Other Population band 11 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=5));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=2));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and hisprace=5)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and hisprace=5)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_other_pooled",
@@ -1973,17 +2085,40 @@ run;
 ********************************************************************;
 * Less than HS Population band 12;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=2));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=1));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=1));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=1)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=1)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_lhs",
@@ -1992,14 +2127,42 @@ run;
 ********************************************************************;
 * Less than HS Population band 12 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=1));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=1)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=1)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_lhs_pooled",
@@ -2007,8 +2170,13 @@ run;
 
 ********************************************************************;
 * HS Population band 13;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=2)),
-		reference = ,
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2)),
+		health_reference = ,
+		edu_reference = ,
+		n_edu_reference = ,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_hs",
@@ -2017,14 +2185,16 @@ run;
 ********************************************************************;
 * HS Population band 13 pooled;
 data week_all_pooled;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=2));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
 	week = 0;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=1)),
-		reference = ,
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2)),
+		health_reference = ,
+		edu_reference = ,
+		n_edu_reference = ,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_hs_pooled",
@@ -2033,17 +2203,40 @@ run;
 ********************************************************************;
 * Some College Population band 14;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=2));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=3));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=3));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=3)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=3)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_sc",
@@ -2052,14 +2245,42 @@ run;
 ********************************************************************;
 * Some College Population band 14 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=3));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=3)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=3)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_sc_pooled",
@@ -2068,17 +2289,40 @@ run;
 ********************************************************************;
 * College Population band 15;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=2));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=4));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=4));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=4)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=4)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_coll",
@@ -2087,14 +2331,42 @@ run;
 ********************************************************************;
 * College Population band 15 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=4));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=2));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and educ=4)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and educ=4)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_coll_pooled",
@@ -2103,17 +2375,40 @@ run;
 ********************************************************************;
 * WO Disability Population band 16;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=1));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=1));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=0));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=0));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=0)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=0)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_wodis",
@@ -2122,49 +2417,128 @@ run;
 ********************************************************************;
 * WO Disability Population band 16 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=0));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=1));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=0)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=0)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_wodis_pooled",
 		stack = 32);
 
 ********************************************************************;
-* Disability Population band 17;
+* With Disability Population band 17;
 data full_reference_set;
-	set week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=0));
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=0));
 	ref_set = 1; 
 run;
 proc append base = full_reference_set
-	data = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=1));
+	data = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=1));
 run;
 proc sort data=full_reference_set out=full_reference_set;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=1)),
-		reference = full_reference_set,
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
+run;
+proc sort data=week_all out=week_all;
+	by week descending shot ref_set;
+run;
+%bander(raw_band = week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=1)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 0,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_dis",
 		stack = 33);
 
 ********************************************************************;
-* Disability Population band 17 pooled;
+* With Disability Population band 17 pooled;
 data week_all_pooled;
-	set full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=1));
 	week = 0;
+run;
+data full_reference_set;
+	set week_all(where=(week in (40:42) and allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=0));
+	ref_set = 1; 
+	week = 0;
+run;
+proc append base = full_reference_set
+	data = week_all_pooled;
+run;
+data health_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 2));
+run;
+proc sort data=health_reference_set out=health_reference_set;
+	by week descending shot ref_set;
+run;
+data edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 3));
+run;
+proc sort data=edu_reference_set out=edu_reference_set;
+	by week descending shot ref_set;
+run;
+data n_edu_reference_set;
+	set full_reference_set(where=(allewgrp_layer3 = 4));
+run;
+proc sort data=n_edu_reference_set out=n_edu_reference_set;
+	by week descending shot ref_set;
 run;
 proc sort data=week_all_pooled out=week_all_pooled;
 	by week descending shot ref_set;
 run;
-%bander(raw_band = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1) and disability=1)),
-		reference = week_all_pooled(where=(allewgrp_layer3_EW in (1,2,5) and shot in (0,1))),
+%bander(raw_band = week_all_pooled(where=(allewgrp_layer3 in (1,2,3,4,5) and shot in (0,1) and disability=1)),
+		health_reference = health_reference_set,
+		edu_reference = edu_reference_set,
+		n_edu_reference = n_edu_reference_set,
 		first_band = 0,
 		pooled = 1,
 		file = "C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\populations_vac_table2_dis_pooled",
@@ -2191,7 +2565,11 @@ run;
 
 %stack(2,34)
 
-proc print data=stack2;run;
+data complete_vac_table2;
+	retain st week;
+	set complete_vac_table2;
+
+proc print data=complete_vac_table2;run;
 
 proc export 
 	data = complete_vac_table2 
