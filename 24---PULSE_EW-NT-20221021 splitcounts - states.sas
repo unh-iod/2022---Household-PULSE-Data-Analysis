@@ -603,7 +603,7 @@ run;
 
 * Calculate metrics for all categories;
 proc sort data=week_all out=week_all;
-	by week female agegroup1 hisprace educ allewgrp_layer3_EW disability descending shot;
+	by week est_st hisprace educ allewgrp_layer3_EW disability descending shot;
 run;
 
 %macro weekly(w1,w2);
@@ -613,7 +613,7 @@ proc surveyfreq data=week_all(where=(week=&wk.)) varmethod=BRR(FAY);
 	repweights PWEIGHT1-PWEIGHT80;
 	table shot;
 	ods output oneway=PULSE_pop_shot&wk.;
-	by week female agegroup1 hisprace educ allewgrp_layer3_EW disability;
+	by week est_st hisprace educ allewgrp_layer3_EW disability;
 run;
 data PULSE_pop_shot&wk.;
 	set PULSE_pop_shot&wk.;
@@ -629,8 +629,7 @@ data PULSE_pop_shot&wk.;
 	drop Table F_shot _SkipLine;
 	retain 
 		week 
-		female 
-		agegroup1 
+		est_st 
 		hisprace 
 		educ 
 		allewgrp_layer3_EW
@@ -643,12 +642,13 @@ data PULSE_pop_shot&wk.;
 run;
 %end;
 %mend weekly;
-%weekly(48,48);
+%weekly(28,48);
 
 * Combine datasets;
 * Append data;
 data PULSE_pop_shot;
 	set PULSE_pop_shot28;
+run;
 %macro Append(week1,week2);
 %do wk = &week1. %to &week2.;
 proc append base=PULSE_pop_shot data=PULSE_pop_shot&wk. force;
@@ -658,71 +658,7 @@ run;
 %Append(29,48)
 
 Proc export data=PULSE_pop_shot 
-	outfile='C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\PULSE_pop_shot.csv' 
-	dbms=csv 
-	replace;
-run;
-
-proc sort data=week_all out=week_all;
-	by week female agegroup1 hisprace educ allewgrp_layer3 shot REASON1;
-
-
-%macro r1weekly(w1,w2);
-	%do wk = &w1. %to &w2.;
-* Calculate metrics for all categories;
-
-proc surveyfreq data=week_all(where=(week=&wk.)) varmethod=BRR(FAY);
-	weight PWEIGHT;
-	repweights PWEIGHT1-PWEIGHT80;
-	table REASON1;
-	ods output oneway=PULSE_pop_reason1_&wk.;
-	by week female agegroup1 hisprace educ allewgrp_layer3 shot;
-run;
-data PULSE_pop_reason1_&wk.;
-	set PULSE_pop_reason1_&wk.;
-	rename
-		frequency=r1_frequency
-		WgtFreq=r1_WgtFreq
-		StdDev=r1_StdDev
-		Percent=r1_Percent
-		StdErr=r1_StdErr;
-run;
-data PULSE_pop_reason1_&wk.;
-	set PULSE_pop_reason1_&wk.(where=(F_REASON1 <> "Total"));
-	drop Table F_REASON1 _SkipLine;
-	retain 
-		week 
-		female 
-		agegroup1 
-		hisprace 
-		educ 
-		allewgrp_layer3_EW
-		disability
-		r1_frequency
-		r1_WgtFreq
-		r1_StdDev
-		r1_Percent
-		r1_StdErr;
-run;
-%end;
-%mend r1weekly;
-
-data PULSE_pop_fullset;
-	merge 
-		PULSE_pop_shot
-		PULSE_pop_reason1
-		/*PULSE_pop_reason2*/
-		/*PULSE_pop_reason3*/
-		/*PULSE_pop_reason4*/
-		/*PULSE_pop_reason5*/
-		/*PULSE_pop_reason6*/
-		/*PULSE_pop_reason7*/
-		/*PULSE_pop_reason8*/;
-	by week female agegroup1 hisprace educ allewgrp_layer3 shot;
-run;
-
-Proc export data=PULSE_pop_fullset 
-	outfile='C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\PULSE_pop_fullset.csv' 
+	outfile='C:\Users\npr8\OneDrive - USNH\2022---Household-PULSE-Data-Analysis\SAS\PULSE_pop_shot_state.csv' 
 	dbms=csv 
 	replace;
 run;
